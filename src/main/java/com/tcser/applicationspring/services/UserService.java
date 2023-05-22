@@ -2,11 +2,16 @@ package com.tcser.applicationspring.services;
 
 import com.tcser.applicationspring.entities.User;
 import com.tcser.applicationspring.repositories.UserRepository;
+import com.tcser.applicationspring.services.exceptions.DatabaseException;
 import com.tcser.applicationspring.services.exceptions.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import javax.xml.crypto.Data;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +25,7 @@ public class UserService {
         return repository.findAll();
     }
 
-    public User findById(Long id){
+    public User findById(Long id) {
         Optional<User> obj = repository.findById(id);
         return obj.orElseThrow(() -> new ResourceNotFoundException(id));
     }
@@ -29,8 +34,14 @@ public class UserService {
         return repository.save(obj);
     }
 
-    public void delete (Long id){
-        repository.deleteById(id);
+    public void delete(Long id) {
+        try {
+            repository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new ResourceNotFoundException(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new DatabaseException(e.getMessage());
+        }
     }
 
     public User update(Long id, User obj){
