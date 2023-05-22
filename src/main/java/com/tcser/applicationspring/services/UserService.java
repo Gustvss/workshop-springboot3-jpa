@@ -38,6 +38,7 @@ public class UserService {
         try {
             repository.deleteById(id);
         } catch (EmptyResultDataAccessException e) {
+            e.printStackTrace();
             throw new ResourceNotFoundException(id);
         } catch (DataIntegrityViolationException e) {
             throw new DatabaseException(e.getMessage());
@@ -45,9 +46,13 @@ public class UserService {
     }
 
     public User update(Long id, User obj){
-        User entity = repository.getReferenceById(id);
-        updateData(entity, obj);
-        return repository.save(entity);
+        try {
+            User entity = repository.getReferenceById(id);
+            updateData(entity, obj);
+            return repository.save(entity);
+        } catch (EntityNotFoundException e){
+            throw new ResourceNotFoundException(id);
+        }
 
     }
 
